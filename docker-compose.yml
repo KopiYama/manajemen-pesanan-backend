@@ -1,4 +1,103 @@
 services:
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - restoran-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - restoran-network
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+
+  order-service:
+    build: ./service-order
+    container_name: order-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      postgresql:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/order_db
+      - SPRING_DATA_REDIS_HOST=redis
+    networks:
+      - restoran-network
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/notification_db
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - restoran-network
+
+  kitchen-service:
+    build: ./kitchen-service
+    container_name: kitchen-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/kitchen_db
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - restoran-network
+
+  menu-service:
+    build: ./menu-service
+    container_name: menu-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/menu_db?useSSL=false&allowPublicKeyRetrieval=true
+    networks:
+      - restoran-network
+
+  # Infrastructure
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
@@ -17,13 +116,37 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - restoran-network
+
+  postgresql:
+    image: postgres:16-alpine
+    container_name: postgresql
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=order_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - restoran-network
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
     networks:
       - restoran-network
 
@@ -89,3 +212,4 @@ volumes:
   mongo_data:
   mysql_data:
   minio_data:
+  postgres_data:
