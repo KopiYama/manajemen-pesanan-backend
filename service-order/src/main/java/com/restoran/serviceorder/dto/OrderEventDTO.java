@@ -12,4 +12,5 @@ public class OrderEventDTO {
     private UUID orderId;
     private String customerName;
     private BigDecimal totalPrice;
+    private String status;
 }
