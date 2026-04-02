@@ -6,6 +6,7 @@ import com.restoran.menuservice.repository.MenuMakananRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class MenuService {
 
     private final MenuMakananRepository menuRepository;
+    private final FileService fileService;
 
     public List<MenuMakananResponseDTO> getAllMenus() {
         return menuRepository.findAll().stream()
@@ -29,7 +31,7 @@ public class MenuService {
     }
 
     @Transactional
-    public MenuMakananResponseDTO updateMenu(Integer id, MenuMakanan request) {
+    public MenuMakananResponseDTO updateMenu(Integer id, MenuMakanan request, MultipartFile image) {
         MenuMakanan menu = menuRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Menu not found with id: " + id));
 
@@ -38,9 +40,14 @@ public class MenuService {
         menu.setHarga(request.getHarga());
         menu.setIsAvailable(request.getIsAvailable());
         
-        // Slugify image URL if name changed
-        String slug = request.getNamaMenu().toLowerCase().replace(" ", "-");
-        menu.setImageUrl("http://localhost:9000/menu-images/" + slug + ".jpg");
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = fileService.uploadImage(image);
+            menu.setImageUrl(imageUrl);
+        } else if (request.getNamaMenu() != null) {
+            // Keep existing pattern if no new image is uploaded but name changed
+            String slug = request.getNamaMenu().toLowerCase().replace(" ", "-");
+            menu.setImageUrl("http://localhost:9000/menu-images/" + slug + ".jpg");
+        }
 
         MenuMakanan updated = menuRepository.save(menu);
         return mapToDTO(updated);

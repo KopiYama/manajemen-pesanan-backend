@@ -3,8 +3,11 @@ package com.restoran.menuservice.controller;
 import com.restoran.menuservice.dto.MenuMakananResponseDTO;
 import com.restoran.menuservice.entity.MenuMakanan;
 import com.restoran.menuservice.service.MenuService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -14,6 +17,7 @@ import java.util.List;
 public class MenuController {
 
     private final MenuService menuService;
+    private final ObjectMapper objectMapper;
 
     @GetMapping
     public List<MenuMakananResponseDTO> getAllMenus() {
@@ -25,8 +29,13 @@ public class MenuController {
         return menuService.getMenuById(id);
     }
 
-    @PutMapping("/{id}")
-    public MenuMakananResponseDTO updateMenu(@PathVariable Integer id, @RequestBody MenuMakanan request) {
-        return menuService.updateMenu(id, request);
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public MenuMakananResponseDTO updateMenu(
+            @PathVariable Integer id,
+            @RequestPart("data") String menuDataJson,
+            @RequestPart(value = "image", required = false) MultipartFile image) throws Exception {
+        
+        MenuMakanan request = objectMapper.readValue(menuDataJson, MenuMakanan.class);
+        return menuService.updateMenu(id, request, image);
     }
 }
