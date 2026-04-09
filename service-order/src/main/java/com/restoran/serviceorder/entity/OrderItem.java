@@ -26,16 +26,18 @@ public class OrderItem {
     private Order order;
 
     @Column(nullable = false)
+    @JsonProperty("menuItem")
     private String menuItem;
 
     @Column(nullable = false)
+    @JsonProperty("quantity")
     private Integer quantity;
 
     @Column(nullable = false)
+    @JsonProperty("price")
     private BigDecimal price;
 
-    // ALIASES UNTUK FRONTEND (Agar tidak 'undefined' atau 'RpNaN')
-    
+    // Alias tambahan untuk keamanan kompatibilitas UI
     @JsonProperty("name")
     public String getName() {
         return menuItem;
@@ -43,16 +45,6 @@ public class OrderItem {
 
     @JsonProperty("harga")
     public BigDecimal getHarga() {
-        return price;
-    }
-    
-    @JsonProperty("menuItem")
-    public String getMenuItemAlias() {
-        return menuItem;
-    }
-    
-    @JsonProperty("price")
-    public BigDecimal getPriceAlias() {
         return price;
     }
 }
