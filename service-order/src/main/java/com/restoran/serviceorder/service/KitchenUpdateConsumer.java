@@ -20,12 +20,12 @@ public class KitchenUpdateConsumer {
 
     @Transactional
     @KafkaListener(topics = "kitchen-updates", groupId = "order-group")
-    public void consumeKitchenUpdate(Map<String, String> message) {
+    public void consumeKitchenUpdate(Map<String, Object> message) {
         log.info("Received status update from Kitchen: {}", message);
         
         try {
-            UUID orderId = UUID.fromString(message.get("orderId"));
-            String status = message.get("status");
+            UUID orderId = UUID.fromString(message.get("orderId").toString());
+            String status = message.get("status").toString();
             
             orderRepository.findById(orderId).ifPresent(order -> {
                 order.setStatus(status);
