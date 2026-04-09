@@ -48,18 +48,36 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WebResponse<Order>> getOrderById(@PathVariable UUID id) {
+    public ResponseEntity<WebResponse<OrderResponseDTO>> getOrderById(@PathVariable UUID id) {
         Order order = orderService.getOrderById(id);
-        
-        WebResponse<Order> response = WebResponse.<Order>builder()
+
+        List<OrderItemResponseDTO> itemDTOs = order.getItems().stream()
+                .map(item -> OrderItemResponseDTO.builder()
+                        .id(item.getId())
+                        .menuItem(item.getMenuItem())
+                        .name(item.getMenuItem())
+                        .quantity(item.getQuantity())
+                        .price(item.getPrice())
+                        .harga(item.getPrice())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+
+        OrderResponseDTO responseDTO = OrderResponseDTO.builder()
+                .id(order.getId())
+                .customerName(order.getCustomerName())
+                .status(order.getStatus())
+                .totalPrice(order.getTotalPrice())
+                .items(itemDTOs)
+                .build();
+
+        WebResponse<OrderResponseDTO> response = WebResponse.<OrderResponseDTO>builder()
                 .success(true)
                 .message("Order found")
-                .data(order)
+                .data(responseDTO)
                 .build();
-                
+
         return ResponseEntity.ok(response);
     }
-
     @PatchMapping("/{id}/status")
     public ResponseEntity<WebResponse<Order>> updateStatus(
             @PathVariable UUID id, 
