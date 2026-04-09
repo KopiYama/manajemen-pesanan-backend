@@ -54,4 +54,11 @@ public class KitchenController {
     public KitchenOrderResponseDTO getOrderDetail(@PathVariable String orderId) {
         return kitchenService.getOrderDetail(orderId);
     }
+
+    @PutMapping("/{id}/status")
+    public KitchenOrderResponseDTO updateStatusGeneric(
+            @PathVariable String id,
+            @RequestParam KitchenStatus status) {
+        return kitchenService.updateStatusById(id, status);
+    }
 }

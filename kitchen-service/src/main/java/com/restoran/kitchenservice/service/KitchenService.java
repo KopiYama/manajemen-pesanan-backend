@@ -39,6 +39,25 @@ public class KitchenService {
         return mapToResponseDTO(order);
     }
 
+    public KitchenOrderResponseDTO updateStatusById(String id, KitchenStatus targetStatus) {
+        KitchenOrder order = repository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException("Kitchen order not found for ID: " + id));
+
+        validateTransition(order.getStatus(), targetStatus);
+
+        order.setStatus(targetStatus);
+        order.setUpdatedAt(LocalDateTime.now());
+
+        if (targetStatus == KitchenStatus.COMPLETED) {
+            order.setCompletedAt(LocalDateTime.now());
+        }
+
+        KitchenOrder updatedOrder = repository.save(order);
+        log.info("Order ID {} (Database ID {}) transitioned to {}", order.getOrderId(), id, targetStatus);
+        
+        return mapToResponseDTO(updatedOrder);
+    }
+
     public KitchenOrderResponseDTO updateStatus(String orderId, KitchenStatus targetStatus) {
         KitchenOrder order = repository.findByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("Kitchen order not found for ID: " + orderId));
