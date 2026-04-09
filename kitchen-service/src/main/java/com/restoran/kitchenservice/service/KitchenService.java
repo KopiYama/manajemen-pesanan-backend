@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,14 +35,27 @@ public class KitchenService {
     }
 
     public KitchenOrderResponseDTO getOrderDetail(String orderId) {
-        KitchenOrder order = repository.findByOrderId(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("Kitchen order not found for ID: " + orderId));
+        Optional<KitchenOrder> orderOpt = repository.findByOrderId(orderId);
+        if (orderOpt.isEmpty()) {
+            orderOpt = repository.findById(orderId);
+        }
+        
+        KitchenOrder order = orderOpt.orElseThrow(() -> 
+                new OrderNotFoundException("Kitchen order not found for ID: " + orderId));
         return mapToResponseDTO(order);
     }
 
     public KitchenOrderResponseDTO updateStatusById(String id, KitchenStatus targetStatus) {
-        KitchenOrder order = repository.findById(id)
-                .orElseThrow(() -> new OrderNotFoundException("Kitchen order not found for ID: " + id));
+        // Coba cari berdasarkan ID internal MongoDB dahulu
+        Optional<KitchenOrder> orderOpt = repository.findById(id);
+        
+        // Jika tidak ketemu, cari berdasarkan Order ID (UUID)
+        if (orderOpt.isEmpty()) {
+            orderOpt = repository.findByOrderId(id);
+        }
+
+        KitchenOrder order = orderOpt.orElseThrow(() -> 
+                new OrderNotFoundException("Kitchen order not found for ID: " + id));
 
         validateTransition(order.getStatus(), targetStatus);
 
@@ -53,28 +67,13 @@ public class KitchenService {
         }
 
         KitchenOrder updatedOrder = repository.save(order);
-        log.info("Order ID {} (Database ID {}) transitioned to {}", order.getOrderId(), id, targetStatus);
+        log.info("Order {} transitioned to {}", id, targetStatus);
         
         return mapToResponseDTO(updatedOrder);
     }
 
     public KitchenOrderResponseDTO updateStatus(String orderId, KitchenStatus targetStatus) {
-        KitchenOrder order = repository.findByOrderId(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("Kitchen order not found for ID: " + orderId));
-
-        validateTransition(order.getStatus(), targetStatus);
-
-        order.setStatus(targetStatus);
-        order.setUpdatedAt(LocalDateTime.now());
-
-        if (targetStatus == KitchenStatus.COMPLETED) {
-            order.setCompletedAt(LocalDateTime.now());
-        }
-
-        KitchenOrder updatedOrder = repository.save(order);
-        log.info("Order {} transitioned from {} to {}", orderId, order.getStatus(), targetStatus);
-        
-        return mapToResponseDTO(updatedOrder);
+        return updateStatusById(orderId, targetStatus);
     }
 
     private void validateTransition(KitchenStatus current, KitchenStatus target) {
@@ -82,7 +81,7 @@ public class KitchenService {
             case QUEUED -> target == KitchenStatus.IN_PROGRESS;
             case IN_PROGRESS -> target == KitchenStatus.READY_TO_SERVE;
             case READY_TO_SERVE -> target == KitchenStatus.COMPLETED;
-            case COMPLETED -> false; // Cannot move from COMPLETED
+            case COMPLETED -> false;
         };
 
         if (!isValid) {
@@ -95,7 +94,7 @@ public class KitchenService {
                 .id(order.getId())
                 .orderId(order.getOrderId())
                 .customerName(order.getCustomerName())
-                .items(order.getItems()) // Sertakan daftar menu dalam respons
+                .items(order.getItems())
                 .status(order.getStatus())
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
