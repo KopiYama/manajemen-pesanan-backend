@@ -2,6 +2,7 @@ package com.restoran.menuservice.service;
 
 import com.restoran.menuservice.dto.MenuMakananResponseDTO;
 import com.restoran.menuservice.entity.MenuMakanan;
+import com.restoran.menuservice.repository.JenisMakananRepository;
 import com.restoran.menuservice.repository.MenuMakananRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 public class MenuService {
 
     private final MenuMakananRepository menuRepository;
+    private final JenisMakananRepository jenisRepository;
     private final FileService fileService;
 
     public List<MenuMakananResponseDTO> getAllMenus() {
@@ -38,6 +40,11 @@ public class MenuService {
         } else if (request.getNamaMenu() != null) {
             String slug = request.getNamaMenu().toLowerCase().replace(" ", "-");
             imageUrl = "http://localhost:9000/menu-images/" + slug + ".jpg";
+        }
+
+        // Ambil JenisMakanan yang valid dari DB agar foreign key terisi
+        if (request.getJenis() != null && request.getJenis().getId() != null) {
+            request.setJenis(jenisRepository.findById(request.getJenis().getId()).orElse(null));
         }
 
         MenuMakanan menu = MenuMakanan.builder()
@@ -63,11 +70,15 @@ public class MenuService {
         menu.setHarga(request.getHarga());
         menu.setIsAvailable(request.getIsAvailable());
         
+        // Update Jenis jika dikirim
+        if (request.getJenis() != null && request.getJenis().getId() != null) {
+            menu.setJenis(jenisRepository.findById(request.getJenis().getId()).orElse(null));
+        }
+        
         if (image != null && !image.isEmpty()) {
             String imageUrl = fileService.uploadImage(image);
             menu.setImageUrl(imageUrl);
         } else if (request.getNamaMenu() != null) {
-            // Keep existing pattern if no new image is uploaded but name changed
             String slug = request.getNamaMenu().toLowerCase().replace(" ", "-");
             menu.setImageUrl("http://localhost:9000/menu-images/" + slug + ".jpg");
         }
