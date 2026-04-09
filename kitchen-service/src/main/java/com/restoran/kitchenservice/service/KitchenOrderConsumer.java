@@ -30,12 +30,14 @@ public class KitchenOrderConsumer {
         KitchenOrder kitchenOrder = KitchenOrder.builder()
                 .orderId(event.getOrderId().toString())
                 .customerName(event.getCustomerName())
+                .items(event.getMenuItems()) // Menyimpan list menu
                 .status(KitchenStatus.QUEUED)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
         repository.save(kitchenOrder);
-        log.info("New order queued in kitchen: {}", event.getOrderId());
+        log.info("New order queued in kitchen: {} with {} items", event.getOrderId(), 
+                event.getMenuItems() != null ? event.getMenuItems().size() : 0);
     }
 }

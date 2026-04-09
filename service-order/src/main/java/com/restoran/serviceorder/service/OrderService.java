@@ -2,6 +2,7 @@ package com.restoran.serviceorder.service;
 
 import com.restoran.serviceorder.dto.*;
 import com.restoran.serviceorder.entity.Order;
+import com.restoran.serviceorder.entity.OrderItem;
 import com.restoran.serviceorder.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,15 +31,22 @@ public class OrderService {
     public Order createOrder(OrderRequestDTO request) {
         Order order = Order.builder()
                 .customerName(request.getCustomerName())
-                .menuItem(request.getMenuItem())
-                .quantity(request.getQuantity())
                 .totalPrice(request.getTotalPrice())
                 .status("PENDING")
                 .build();
 
+        request.getItems().forEach(itemDto -> {
+            OrderItem orderItem = OrderItem.builder()
+                    .menuItem(itemDto.getMenuItem())
+                    .quantity(itemDto.getQuantity())
+                    .price(itemDto.getPrice())
+                    .build();
+            order.addItem(orderItem);
+        });
+
         Order savedOrder = orderRepository.save(order);
         this.sendOrderEvent(savedOrder);
-        
+
         return savedOrder;
     }
 
@@ -57,10 +66,10 @@ public class OrderService {
     public Order updateOrderStatus(UUID id, UpdateOrderStatusRequestDTO request) {
         Order order = getOrderById(id);
         order.setStatus(request.getStatus().toUpperCase());
-        
+
         Order updatedOrder = orderRepository.save(order);
         this.sendOrderEvent(updatedOrder);
-        
+
         return updatedOrder;
     }
 
@@ -68,11 +77,14 @@ public class OrderService {
         OrderEventDTO event = OrderEventDTO.builder()
                 .orderId(order.getId())
                 .customerName(order.getCustomerName())
+                .menuItems(order.getItems().stream()
+                        .map(item -> item.getQuantity() + "x " + item.getMenuItem())
+                        .collect(Collectors.toList()))
                 .totalPrice(order.getTotalPrice())
                 .status(order.getStatus())
                 .build();
 
         kafkaTemplate.send("order-notifications", event);
-        log.info("Order event sent to Kafka for ID: {} with status: {}", order.getId(), order.getStatus());
+        log.info("Order event sent to Kafka for ID: {} with status: {}", order.getId(), order.getStatus());     
     }
 }

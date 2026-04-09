@@ -1,13 +1,18 @@
 package com.restoran.notificationservice.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 
 @Data
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class OrderEventDTO {
-    private String orderId;
-    private String message;
+    private UUID orderId;
+    private String customerName;
+    private List<String> menuItems;
+    private BigDecimal totalPrice;
+    private String status;
 }

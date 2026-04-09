@@ -95,6 +95,7 @@ public class KitchenService {
                 .id(order.getId())
                 .orderId(order.getOrderId())
                 .customerName(order.getCustomerName())
+                .items(order.getItems()) // Sertakan daftar menu dalam respons
                 .status(order.getStatus())
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())

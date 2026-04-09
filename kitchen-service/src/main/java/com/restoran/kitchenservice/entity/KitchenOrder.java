@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -19,8 +20,9 @@ public class KitchenOrder {
 
     @Indexed(unique = true)
     private String orderId;
-    
+
     private String customerName;
+    private List<String> items;
     private KitchenStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
