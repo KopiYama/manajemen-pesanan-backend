@@ -94,6 +94,10 @@ services:
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/menu_db?useSSL=false&allowPublicKeyRetrieval=true
+      - MINIO_URL=http://minio:9000
+      - MINIO_ACCESS-KEY=minioadmin
+      - MINIO_SECRET-KEY=minioadmin123
+      - MINIO_BUCKET-NAME=menu-images
     networks:
       - restoran-network
 

@@ -31,6 +31,29 @@ public class MenuService {
     }
 
     @Transactional
+    public MenuMakananResponseDTO createMenu(MenuMakanan request, MultipartFile image) {
+        String imageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            imageUrl = fileService.uploadImage(image);
+        } else if (request.getNamaMenu() != null) {
+            String slug = request.getNamaMenu().toLowerCase().replace(" ", "-");
+            imageUrl = "http://localhost:9000/menu-images/" + slug + ".jpg";
+        }
+
+        MenuMakanan menu = MenuMakanan.builder()
+                .namaMenu(request.getNamaMenu())
+                .deskripsi(request.getDeskripsi())
+                .harga(request.getHarga())
+                .jenis(request.getJenis())
+                .imageUrl(imageUrl)
+                .isAvailable(request.getIsAvailable() != null ? request.getIsAvailable() : true)
+                .build();
+
+        MenuMakanan saved = menuRepository.save(menu);
+        return mapToDTO(saved);
+    }
+
+    @Transactional
     public MenuMakananResponseDTO updateMenu(Integer id, MenuMakanan request, MultipartFile image) {
         MenuMakanan menu = menuRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Menu not found with id: " + id));

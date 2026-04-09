@@ -29,6 +29,15 @@ public class MenuController {
         return menuService.getMenuById(id);
     }
 
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public MenuMakananResponseDTO createMenu(
+            @RequestPart("data") String menuDataJson,
+            @RequestPart(value = "image", required = false) MultipartFile image) throws Exception {
+        
+        MenuMakanan request = objectMapper.readValue(menuDataJson, MenuMakanan.class);
+        return menuService.createMenu(request, image);
+    }
+
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public MenuMakananResponseDTO updateMenu(
             @PathVariable Integer id,
