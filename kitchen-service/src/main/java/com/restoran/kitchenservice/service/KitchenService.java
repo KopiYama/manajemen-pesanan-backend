@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class KitchenService {
 
     private final KitchenOrderRepository repository;
+    private final org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
 
     public List<KitchenOrderResponseDTO> getOrdersByStatus(KitchenStatus status) {
         return repository.findByStatus(status).stream()
@@ -68,6 +69,16 @@ public class KitchenService {
 
         KitchenOrder updatedOrder = repository.save(order);
         log.info("Order {} transitioned to {}", id, targetStatus);
+        
+        // Kirim update status ke Kafka agar Order Service bisa update DB-nya
+        try {
+            java.util.Map<String, Object> message = new java.util.HashMap<>();
+            message.put("orderId", updatedOrder.getOrderId());
+            message.put("status", updatedOrder.getStatus().toString());
+            kafkaTemplate.send("kitchen-updates", message);
+        } catch (Exception e) {
+            log.error("Failed to send status update to Kafka", e);
+        }
         
         return mapToResponseDTO(updatedOrder);
     }

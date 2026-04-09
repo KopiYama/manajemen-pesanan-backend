@@ -1,6 +1,7 @@
 package com.restoran.serviceorder.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -25,11 +26,13 @@ public class OrderItem {
     private Order order;
 
     @Column(nullable = false)
+    @JsonProperty("name") // Alias agar terbaca oleh UI sebagai 'name'
     private String menuItem;
 
     @Column(nullable = false)
     private Integer quantity;
 
     @Column(nullable = false)
+    @JsonProperty("harga") // Alias agar terbaca oleh UI sebagai 'harga'
     private BigDecimal price;
 }
