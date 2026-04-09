@@ -26,13 +26,33 @@ public class OrderItem {
     private Order order;
 
     @Column(nullable = false)
-    @JsonProperty("name") // Alias agar terbaca oleh UI sebagai 'name'
     private String menuItem;
 
     @Column(nullable = false)
     private Integer quantity;
 
     @Column(nullable = false)
-    @JsonProperty("harga") // Alias agar terbaca oleh UI sebagai 'harga'
     private BigDecimal price;
+
+    // ALIASES UNTUK FRONTEND (Agar tidak 'undefined' atau 'RpNaN')
+    
+    @JsonProperty("name")
+    public String getName() {
+        return menuItem;
+    }
+
+    @JsonProperty("harga")
+    public BigDecimal getHarga() {
+        return price;
+    }
+    
+    @JsonProperty("menuItem")
+    public String getMenuItemAlias() {
+        return menuItem;
+    }
+    
+    @JsonProperty("price")
+    public BigDecimal getPriceAlias() {
+        return price;
+    }
 }
