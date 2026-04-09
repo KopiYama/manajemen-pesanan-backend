@@ -10,6 +10,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,17 +28,24 @@ public class KitchenOrderConsumer {
             return;
         }
 
+        // Map DTO items to Entity items
+        java.util.List<KitchenOrder.KitchenOrderItem> entityItems = event.getItems().stream()
+                .map(itemDto -> KitchenOrder.KitchenOrderItem.builder()
+                        .menuItem(itemDto.getMenuItem())
+                        .quantity(itemDto.getQuantity())
+                        .build())
+                .collect(Collectors.toList());
+
         KitchenOrder kitchenOrder = KitchenOrder.builder()
                 .orderId(event.getOrderId().toString())
                 .customerName(event.getCustomerName())
-                .items(event.getMenuItems()) // Menyimpan list menu
+                .items(entityItems)
                 .status(KitchenStatus.QUEUED)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
         repository.save(kitchenOrder);
-        log.info("New order queued in kitchen: {} with {} items", event.getOrderId(), 
-                event.getMenuItems() != null ? event.getMenuItems().size() : 0);
+        log.info("New order queued in kitchen: {} with {} items", event.getOrderId(), entityItems.size());
     }
 }

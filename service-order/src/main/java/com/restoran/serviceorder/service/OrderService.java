@@ -74,12 +74,17 @@ public class OrderService {
     }
 
     private void sendOrderEvent(Order order) {
+        List<OrderEventDTO.OrderItemEventDTO> eventItems = order.getItems().stream()
+                .map(item -> OrderEventDTO.OrderItemEventDTO.builder()
+                        .menuItem(item.getMenuItem())
+                        .quantity(item.getQuantity())
+                        .build())
+                .collect(Collectors.toList());
+
         OrderEventDTO event = OrderEventDTO.builder()
                 .orderId(order.getId())
                 .customerName(order.getCustomerName())
-                .menuItems(order.getItems().stream()
-                        .map(item -> item.getQuantity() + "x " + item.getMenuItem())
-                        .collect(Collectors.toList()))
+                .items(eventItems)
                 .totalPrice(order.getTotalPrice())
                 .status(order.getStatus())
                 .build();

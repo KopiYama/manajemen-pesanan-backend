@@ -12,7 +12,16 @@ import java.util.UUID;
 public class OrderEventDTO {
     private UUID orderId;
     private String customerName;
-    private List<String> menuItems;
+    private List<OrderItemEventDTO> items;
     private BigDecimal totalPrice;
     private String status;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OrderItemEventDTO {
+        private String menuItem;
+        private Integer quantity;
+    }
 }

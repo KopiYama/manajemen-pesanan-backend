@@ -22,9 +22,18 @@ public class KitchenOrder {
     private String orderId;
 
     private String customerName;
-    private List<String> items;
+    private List<KitchenOrderItem> items; // Sekarang list objek
     private KitchenStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime completedAt;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class KitchenOrderItem {
+        private String menuItem;
+        private Integer quantity;
+    }
 }

@@ -9,6 +9,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -21,8 +22,10 @@ public class OrderConsumer {
     public void consume(OrderEventDTO orderEvent) {
         log.info("Received message from Kafka: {}", orderEvent);
 
-        String itemsSummary = orderEvent.getMenuItems() != null 
-                ? String.join(", ", orderEvent.getMenuItems()) 
+        String itemsSummary = orderEvent.getItems() != null 
+                ? orderEvent.getItems().stream()
+                    .map(item -> item.getQuantity() + "x " + item.getMenuItem())
+                    .collect(Collectors.joining(", "))
                 : "No items";
 
         String message = String.format("Order received from %s with status %s. Items: %s", 
