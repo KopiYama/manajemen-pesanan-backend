@@ -17,20 +17,20 @@ public class OrderConsumer {
 
     private final NotificationRepository notificationRepository;
 
-    /**
-     * @KafkaListener adalah anotasi yang menandai metode sebagai target dari pesan Kafka.
-     * Spring akan secara otomatis membuat message listener container untuk metode ini.
-     * 
-     * - topics: Nama topic yang ingin didengarkan ('order-notifications').
-     * - groupId: ID grup konsumen untuk mengelola offset pembacaan pesan ('notification-group').
-     */
     @KafkaListener(topics = "order-notifications", groupId = "notification-group")
     public void consume(OrderEventDTO orderEvent) {
         log.info("Received message from Kafka: {}", orderEvent);
 
+        String itemsSummary = orderEvent.getMenuItems() != null 
+                ? String.join(", ", orderEvent.getMenuItems()) 
+                : "No items";
+
+        String message = String.format("Order received from %s with status %s. Items: %s", 
+                orderEvent.getCustomerName(), orderEvent.getStatus(), itemsSummary);
+
         NotificationLog logEntry = NotificationLog.builder()
-                .orderId(orderEvent.getOrderId())
-                .message(orderEvent.getMessage())
+                .orderId(orderEvent.getOrderId().toString())
+                .message(message)
                 .createdAt(LocalDateTime.now())
                 .build();
 
