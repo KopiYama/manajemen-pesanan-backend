@@ -40,6 +40,21 @@ public class KitchenController {
         return kitchenUseCase.getOrderDetail(id);
     }
 
+    @PutMapping("/queue/{id}/process")
+    public KitchenOrderResponseDTO processOrder(@PathVariable String id) {
+        return kitchenUseCase.updateStatus(id, KitchenStatus.IN_PROGRESS);
+    }
+
+    @PutMapping("/in-progress/{id}/ready")
+    public KitchenOrderResponseDTO readyOrder(@PathVariable String id) {
+        return kitchenUseCase.updateStatus(id, KitchenStatus.READY_TO_SERVE);
+    }
+
+    @PutMapping("/ready/{id}/complete")
+    public KitchenOrderResponseDTO completeOrder(@PathVariable String id) {
+        return kitchenUseCase.updateStatus(id, KitchenStatus.COMPLETED);
+    }
+
     @PutMapping("/{id}/status")
     public KitchenOrderResponseDTO updateStatus(
             @PathVariable String id,
