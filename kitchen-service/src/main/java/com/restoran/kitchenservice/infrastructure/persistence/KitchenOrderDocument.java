@@ -1,6 +1,6 @@
-package com.restoran.kitchenservice.entity;
+package com.restoran.kitchenservice.infrastructure.persistence;
 
-import com.restoran.kitchenservice.enums.KitchenStatus;
+import com.restoran.kitchenservice.domain.model.KitchenStatus;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "kitchen_orders")
-public class KitchenOrder {
+public class KitchenOrderDocument {
     @Id
     private String id;
 
@@ -22,7 +22,7 @@ public class KitchenOrder {
     private String orderId;
 
     private String customerName;
-    private List<KitchenOrderItem> items; // Sekarang list objek
+    private List<ItemDocument> items;
     private KitchenStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -32,7 +32,7 @@ public class KitchenOrder {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class KitchenOrderItem {
+    public static class ItemDocument {
         private String menuItem;
         private Integer quantity;
     }

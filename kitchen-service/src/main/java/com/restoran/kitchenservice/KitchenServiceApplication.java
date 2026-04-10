@@ -4,8 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
-@SpringBootApplication
-@EnableMongoRepositories
+@SpringBootApplication(scanBasePackages = "com.restoran.kitchenservice")
+@EnableMongoRepositories(basePackages = "com.restoran.kitchenservice.infrastructure.persistence")
 public class KitchenServiceApplication {
 
     public static void main(String[] args) {

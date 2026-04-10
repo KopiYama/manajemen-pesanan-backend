@@ -1,9 +1,8 @@
-package com.restoran.kitchenservice.service;
+package com.restoran.kitchenservice.infrastructure.messaging;
 
-import com.restoran.kitchenservice.dto.OrderEventDTO;
-import com.restoran.kitchenservice.entity.KitchenOrder;
-import com.restoran.kitchenservice.enums.KitchenStatus;
-import com.restoran.kitchenservice.repository.KitchenOrderRepository;
+import com.restoran.kitchenservice.domain.model.KitchenOrder;
+import com.restoran.kitchenservice.domain.model.KitchenStatus;
+import com.restoran.kitchenservice.domain.repository.KitchenOrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -24,28 +23,27 @@ public class KitchenOrderConsumer {
         log.info("Received order event from Kafka: {}", event);
 
         if (repository.findByOrderId(event.getOrderId().toString()).isPresent()) {
-            log.warn("Duplicate order received from Kafka. Skipping orderId: {}", event.getOrderId());
+            log.warn("Duplicate order. Skipping orderId: {}", event.getOrderId());
             return;
         }
 
-        // Map DTO items to Entity items
-        java.util.List<KitchenOrder.KitchenOrderItem> entityItems = event.getItems().stream()
-                .map(itemDto -> KitchenOrder.KitchenOrderItem.builder()
-                        .menuItem(itemDto.getMenuItem())
-                        .quantity(itemDto.getQuantity())
+        List<KitchenOrder.KitchenOrderItem> domainItems = event.getItems().stream()
+                .map(i -> KitchenOrder.KitchenOrderItem.builder()
+                        .menuItem(i.getMenuItem())
+                        .quantity(i.getQuantity())
                         .build())
                 .collect(Collectors.toList());
 
-        KitchenOrder kitchenOrder = KitchenOrder.builder()
+        KitchenOrder order = KitchenOrder.builder()
                 .orderId(event.getOrderId().toString())
                 .customerName(event.getCustomerName())
-                .items(entityItems)
+                .items(domainItems)
                 .status(KitchenStatus.QUEUED)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        repository.save(kitchenOrder);
-        log.info("New order queued in kitchen: {} with {} items", event.getOrderId(), entityItems.size());
+        repository.save(order);
+        log.info("Order {} added to kitchen domain", event.getOrderId());
     }
 }

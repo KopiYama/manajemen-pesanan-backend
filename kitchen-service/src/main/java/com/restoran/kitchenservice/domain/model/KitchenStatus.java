@@ -1,4 +1,4 @@
-package com.restoran.kitchenservice.enums;
+package com.restoran.kitchenservice.domain.model;
 
 public enum KitchenStatus {
     QUEUED,
