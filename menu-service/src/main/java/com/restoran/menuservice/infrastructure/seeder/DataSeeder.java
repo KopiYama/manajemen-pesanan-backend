@@ -23,10 +23,10 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (categoryRepository.count() == 0) {
+        if (categoryRepository.countCategories() == 0) {
             seedJenisMakanan();
         }
-        if (menuRepository.count() == 0) {
+        if (menuRepository.countMenus() == 0) {
             seedMenuMakanan();
         }
     }
@@ -37,14 +37,14 @@ public class DataSeeder implements CommandLineRunner {
                 JenisMakanan.builder().namaJenis("Makanan").build(),
                 JenisMakanan.builder().namaJenis("Minuman").build()
         );
-        types.forEach(categoryRepository::save);
+        types.forEach(categoryRepository::saveCategory);
         log.info("Inserted 2 Jenis Makanan records");
     }
 
     private void seedMenuMakanan() {
         log.info("Seeding Menu Makanan data...");
-        JenisMakanan makanan = categoryRepository.findByNama("Makanan").orElseThrow();
-        JenisMakanan minuman = categoryRepository.findByNama("Minuman").orElseThrow();
+        JenisMakanan makanan = categoryRepository.findCategoryByNama("Makanan").orElseThrow();
+        JenisMakanan minuman = categoryRepository.findCategoryByNama("Minuman").orElseThrow();
 
         // Makanan
         createMenu("Nasi Goreng Spesial", "Nasi goreng dengan telur, ayam, dan sayuran", new BigDecimal("25000.00"), makanan);
@@ -86,7 +86,7 @@ public class DataSeeder implements CommandLineRunner {
                 .isAvailable(true)
                 .build();
         
-        menuRepository.save(menu);
+        menuRepository.saveMenu(menu);
         log.info("Inserted menu: {}", nama);
     }
 }
