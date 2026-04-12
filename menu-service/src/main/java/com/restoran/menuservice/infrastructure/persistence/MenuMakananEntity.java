@@ -1,4 +1,4 @@
-package com.restoran.menuservice.entity;
+package com.restoran.menuservice.infrastructure.persistence;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MenuMakanan {
+public class MenuMakananEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -27,7 +27,7 @@ public class MenuMakanan {
 
     @ManyToOne
     @JoinColumn(name = "jenis_id")
-    private JenisMakanan jenis;
+    private JenisMakananEntity jenis;
 
     @Column(name = "image_url")
     private String imageUrl;

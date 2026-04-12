@@ -1,4 +1,4 @@
-package com.restoran.menuservice.dto;
+package com.restoran.menuservice.application.dto;
 
 import lombok.*;
 import java.math.BigDecimal;

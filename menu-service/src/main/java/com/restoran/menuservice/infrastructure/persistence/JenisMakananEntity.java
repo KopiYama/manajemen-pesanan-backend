@@ -1,4 +1,4 @@
-package com.restoran.menuservice.entity;
+package com.restoran.menuservice.infrastructure.persistence;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class JenisMakanan {
+public class JenisMakananEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

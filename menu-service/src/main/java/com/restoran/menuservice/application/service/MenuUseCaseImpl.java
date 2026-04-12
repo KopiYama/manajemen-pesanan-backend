@@ -1,9 +1,12 @@
-package com.restoran.menuservice.service;
+package com.restoran.menuservice.application.service;
 
-import com.restoran.menuservice.dto.MenuMakananResponseDTO;
-import com.restoran.menuservice.entity.MenuMakanan;
-import com.restoran.menuservice.repository.JenisMakananRepository;
-import com.restoran.menuservice.repository.MenuMakananRepository;
+import com.restoran.menuservice.application.dto.MenuMakananResponseDTO;
+import com.restoran.menuservice.application.usecase.MenuUseCase;
+import com.restoran.menuservice.domain.model.JenisMakanan;
+import com.restoran.menuservice.domain.model.MenuMakanan;
+import com.restoran.menuservice.domain.repository.CategoryRepository;
+import com.restoran.menuservice.domain.repository.MenuRepository;
+import com.restoran.menuservice.domain.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,55 +17,52 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class MenuService {
+public class MenuUseCaseImpl implements MenuUseCase {
 
-    private final MenuMakananRepository menuRepository;
-    private final JenisMakananRepository jenisRepository;
-    private final FileService fileService;
+    private final MenuRepository menuRepository;
+    private final CategoryRepository categoryRepository;
+    private final FileStorageService fileService;
 
+    @Override
     public List<MenuMakananResponseDTO> getAllMenus() {
-        return menuRepository.findAll().stream()
+        return menuRepository.findAllMenus().stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
+    @Override
     public MenuMakananResponseDTO getMenuById(Integer id) {
-        MenuMakanan menu = menuRepository.findById(id)
+        MenuMakanan menu = menuRepository.findMenuById(id)
                 .orElseThrow(() -> new RuntimeException("Menu not found with id: " + id));
         return mapToDTO(menu);
     }
 
+    @Override
     @Transactional
     public MenuMakananResponseDTO createMenu(MenuMakanan request, MultipartFile image) {
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileService.uploadImage(image);
+            imageUrl = fileService.store(image);
         } else if (request.getNamaMenu() != null) {
             String slug = request.getNamaMenu().toLowerCase().replace(" ", "-");
             imageUrl = "http://localhost:9000/menu-images/" + slug + ".jpg";
         }
 
-        // Ambil JenisMakanan yang valid dari DB agar foreign key terisi
         if (request.getJenis() != null && request.getJenis().getId() != null) {
-            request.setJenis(jenisRepository.findById(request.getJenis().getId()).orElse(null));
+            request.setJenis(categoryRepository.findCategoryById(request.getJenis().getId()).orElse(null));
         }
 
-        MenuMakanan menu = MenuMakanan.builder()
-                .namaMenu(request.getNamaMenu())
-                .deskripsi(request.getDeskripsi())
-                .harga(request.getHarga())
-                .jenis(request.getJenis())
-                .imageUrl(imageUrl)
-                .isAvailable(request.getIsAvailable() != null ? request.getIsAvailable() : true)
-                .build();
+        request.setImageUrl(imageUrl);
+        if (request.getIsAvailable() == null) request.setIsAvailable(true);
 
-        MenuMakanan saved = menuRepository.save(menu);
+        MenuMakanan saved = menuRepository.saveMenu(request);
         return mapToDTO(saved);
     }
 
+    @Override
     @Transactional
     public MenuMakananResponseDTO updateMenu(Integer id, MenuMakanan request, MultipartFile image) {
-        MenuMakanan menu = menuRepository.findById(id)
+        MenuMakanan menu = menuRepository.findMenuById(id)
                 .orElseThrow(() -> new RuntimeException("Menu not found with id: " + id));
 
         menu.setNamaMenu(request.getNamaMenu());
@@ -70,20 +70,18 @@ public class MenuService {
         menu.setHarga(request.getHarga());
         menu.setIsAvailable(request.getIsAvailable());
         
-        // Update Jenis jika dikirim
         if (request.getJenis() != null && request.getJenis().getId() != null) {
-            menu.setJenis(jenisRepository.findById(request.getJenis().getId()).orElse(null));
+            menu.setJenis(categoryRepository.findCategoryById(request.getJenis().getId()).orElse(null));
         }
         
         if (image != null && !image.isEmpty()) {
-            String imageUrl = fileService.uploadImage(image);
-            menu.setImageUrl(imageUrl);
+            menu.setImageUrl(fileService.store(image));
         } else if (request.getNamaMenu() != null) {
             String slug = request.getNamaMenu().toLowerCase().replace(" ", "-");
             menu.setImageUrl("http://localhost:9000/menu-images/" + slug + ".jpg");
         }
 
-        MenuMakanan updated = menuRepository.save(menu);
+        MenuMakanan updated = menuRepository.saveMenu(menu);
         return mapToDTO(updated);
     }
 

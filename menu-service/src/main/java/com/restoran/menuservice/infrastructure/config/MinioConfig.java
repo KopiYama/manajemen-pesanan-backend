@@ -1,4 +1,4 @@
-package com.restoran.menuservice.config;
+package com.restoran.menuservice.infrastructure.config;
 
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;

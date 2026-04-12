@@ -1,8 +1,8 @@
-package com.restoran.menuservice.controller;
+package com.restoran.menuservice.presentation.controller;
 
-import com.restoran.menuservice.dto.MenuMakananResponseDTO;
-import com.restoran.menuservice.entity.MenuMakanan;
-import com.restoran.menuservice.service.MenuService;
+import com.restoran.menuservice.application.dto.MenuMakananResponseDTO;
+import com.restoran.menuservice.application.usecase.MenuUseCase;
+import com.restoran.menuservice.domain.model.MenuMakanan;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -16,17 +16,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuController {
 
-    private final MenuService menuService;
+    private final MenuUseCase menuUseCase;
     private final ObjectMapper objectMapper;
 
     @GetMapping
     public List<MenuMakananResponseDTO> getAllMenus() {
-        return menuService.getAllMenus();
+        return menuUseCase.getAllMenus();
     }
 
     @GetMapping("/{id}")
     public MenuMakananResponseDTO getMenuById(@PathVariable Integer id) {
-        return menuService.getMenuById(id);
+        return menuUseCase.getMenuById(id);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -35,7 +35,7 @@ public class MenuController {
             @RequestPart(value = "image", required = false) MultipartFile image) throws Exception {
         
         MenuMakanan request = objectMapper.readValue(menuDataJson, MenuMakanan.class);
-        return menuService.createMenu(request, image);
+        return menuUseCase.createMenu(request, image);
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -45,6 +45,6 @@ public class MenuController {
             @RequestPart(value = "image", required = false) MultipartFile image) throws Exception {
         
         MenuMakanan request = objectMapper.readValue(menuDataJson, MenuMakanan.class);
-        return menuService.updateMenu(id, request, image);
+        return menuUseCase.updateMenu(id, request, image);
     }
 }

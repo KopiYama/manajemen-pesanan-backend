@@ -1,9 +1,9 @@
-package com.restoran.menuservice.seeder;
+package com.restoran.menuservice.infrastructure.seeder;
 
-import com.restoran.menuservice.entity.JenisMakanan;
-import com.restoran.menuservice.entity.MenuMakanan;
-import com.restoran.menuservice.repository.JenisMakananRepository;
-import com.restoran.menuservice.repository.MenuMakananRepository;
+import com.restoran.menuservice.domain.model.JenisMakanan;
+import com.restoran.menuservice.domain.model.MenuMakanan;
+import com.restoran.menuservice.domain.repository.CategoryRepository;
+import com.restoran.menuservice.domain.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -18,12 +18,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
-    private final JenisMakananRepository jenisRepository;
-    private final MenuMakananRepository menuRepository;
+    private final CategoryRepository categoryRepository;
+    private final MenuRepository menuRepository;
 
     @Override
     public void run(String... args) {
-        if (jenisRepository.count() == 0) {
+        if (categoryRepository.count() == 0) {
             seedJenisMakanan();
         }
         if (menuRepository.count() == 0) {
@@ -37,14 +37,14 @@ public class DataSeeder implements CommandLineRunner {
                 JenisMakanan.builder().namaJenis("Makanan").build(),
                 JenisMakanan.builder().namaJenis("Minuman").build()
         );
-        jenisRepository.saveAll(types);
+        types.forEach(categoryRepository::save);
         log.info("Inserted 2 Jenis Makanan records");
     }
 
     private void seedMenuMakanan() {
         log.info("Seeding Menu Makanan data...");
-        JenisMakanan makanan = jenisRepository.findByNamaJenis("Makanan").orElseThrow();
-        JenisMakanan minuman = jenisRepository.findByNamaJenis("Minuman").orElseThrow();
+        JenisMakanan makanan = categoryRepository.findByNama("Makanan").orElseThrow();
+        JenisMakanan minuman = categoryRepository.findByNama("Minuman").orElseThrow();
 
         // Makanan
         createMenu("Nasi Goreng Spesial", "Nasi goreng dengan telur, ayam, dan sayuran", new BigDecimal("25000.00"), makanan);

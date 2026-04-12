@@ -1,5 +1,6 @@
-package com.restoran.menuservice.service;
+package com.restoran.menuservice.infrastructure.storage;
 
+import com.restoran.menuservice.domain.service.FileStorageService;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FileService {
+public class MinioStorageService implements FileStorageService {
 
     private final MinioClient minioClient;
 
@@ -24,7 +25,8 @@ public class FileService {
     @Value("${minio.url}")
     private String minioUrl;
 
-    public String uploadImage(MultipartFile file) {
+    @Override
+    public String store(MultipartFile file) {
         try {
             String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
             InputStream inputStream = file.getInputStream();
