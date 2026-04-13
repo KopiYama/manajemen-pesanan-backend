@@ -1,21 +1,21 @@
 # Restaurant Management System - Backend Microservices
 
-Proyek ini adalah arsitektur backend berbasis **Microservices** untuk sistem manajemen restoran, dibangun menggunakan **Java 21**, **Spring Boot 3.4.2**, dan **Spring Cloud**.
+This project is a **Microservices-based** backend architecture for a restaurant management system, built using **Java 21**, **Spring Boot 3.4.2**, and **Spring Cloud**.
 
-## 🏗️ Arsitektur Sistem
+## 🏗️ System Architecture
 
-Sistem ini menggunakan pola *Event-Driven Architecture* dengan Apache Kafka dan *Service Discovery* menggunakan Netflix Eureka.
+The system follows an **Event-Driven Architecture** pattern using Apache Kafka and implements **Service Discovery** via Netflix Eureka.
 
-### Daftar Layanan (Services)
+### Microservices List
 
-| Service | Port | Deskripsi | Database |
+| Service | Port | Description | Database |
 | :--- | :--- | :--- | :--- |
-| **API Gateway** | 8080 | Entry point utama & routing layanan | - |
+| **API Gateway** | 8080 | Main entry point & service routing | - |
 | **Eureka Server** | 8761 | Service Registry & Discovery | - |
-| **Order Service** | 8081 | Manajemen pesanan & publikasi event | PostgreSQL + Redis |
-| **Notification Service** | 8082 | Konsumen notifikasi real-time | MongoDB |
-| **Kitchen Service** | 8083 | Manajemen antrian dapur & status masak | MongoDB |
-| **Menu Service** | 8084 | Manajemen katalog menu & aset gambar | MySQL + MinIO |
+| **Order Service** | 8081 | Order management & event publishing | PostgreSQL + Redis |
+| **Notification Service** | 8082 | Real-time notification consumer | MongoDB |
+| **Kitchen Service** | 8083 | Kitchen queue & cooking status management | MongoDB |
+| **Menu Service** | 8084 | Menu catalog & image asset management | MySQL + MinIO |
 
 ## 🛠️ Tech Stack
 
@@ -23,41 +23,42 @@ Sistem ini menggunakan pola *Event-Driven Architecture* dengan Apache Kafka dan 
 - **Messaging:** Apache Kafka (Confluent)
 - **Caching:** Redis
 - **Storage:** MinIO (Object Storage)
-- **Database:** PostgreSQL, MySQL, MongoDB
+- **Databases:** PostgreSQL, MySQL, MongoDB
 - **Migration:** Flyway (Menu Service)
 - **Containerization:** Docker & Docker Compose
+- **Architecture:** Clean Architecture (Kitchen & Menu Services)
 
-## 🚀 Cara Menjalankan
+## 🚀 Getting Started
 
-### Prasyarat
+### Prerequisites
 - Docker & Docker Desktop
-- Java 21 & Maven (jika ingin build manual)
+- Java 21 & Maven (for manual builds)
 
-### Langkah-langkah
+### Steps to Run
 1. **Clone Repository:**
    ```bash
    git clone https://github.com/KopiYama/manajemen-pesanan-backend.git
    cd manajemen-pesanan-backend
    ```
 
-2. **Build Semua Service:**
-   Gunakan Maven Wrapper di root (atau masuk ke tiap folder):
+2. **Build All Services:**
+   Using the Maven Wrapper in the root (or within each service folder):
    ```bash
-   # Contoh build manual (lewati tes untuk kecepatan)
+   # Manual build example (skipping tests for speed)
    .\mvnw.cmd clean package -DskipTests
    ```
 
-3. **Jalankan Infrastruktur & Service:**
+3. **Run Infrastructure & Services:**
    ```bash
    docker-compose up -d --build
    ```
 
-## 📍 Endpoint API Utama (via Gateway)
+## 📍 Main API Endpoints (via Gateway)
 
-Semua permintaan harus melalui API Gateway di port **8080**:
+All requests should be routed through the API Gateway at port **8080**:
 
 - **Order API:** `http://localhost:8080/api/orders`
-- **Menu API:** `http://localhost:8080/api/menu`
+- **Menu API:** `http://localhost:8080/api/menu/menus`
 - **Kitchen API:** `http://localhost:8080/api/kitchen`
 - **Notification API:** `http://localhost:8080/api/notifications`
 
@@ -65,8 +66,8 @@ Semua permintaan harus melalui API Gateway di port **8080**:
 
 - **Eureka Dashboard:** `http://localhost:8761`
 - **MinIO Console:** `http://localhost:9001` (User/Pass: `minioadmin` / `minioadmin123`)
-- **Kafka Broker:** `localhost:29092` (Eksternal)
+- **Kafka Broker:** `localhost:29092` (External Access)
 
-## 📝 Catatan Penting
-- Pastikan port 8080-8084, 8761, 3306, 5432, 27017, 9000-9002, dan 6379 tersedia di mesin lokal Anda.
-- Konfigurasi CORS sudah disetel untuk mengizinkan frontend dari `http://localhost:3000`.
+## 📝 Important Notes
+- Ensure ports 8080-8084, 8761, 3306, 5432, 27017, 9000-9001, and 6379 are available on your local machine.
+- Global CORS configuration is set to allow frontend requests from `http://localhost:3000`.
